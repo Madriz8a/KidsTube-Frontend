@@ -1,0 +1,39 @@
+/* Estilos generales */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+/* Estilos para las cards */
+.card {
+    border-radius: 8px;
+    border: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card.shadow, .card.shadow-sm {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 5px;
+    font-weight: 500;
+    padding: 0.5rem 1.2rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #0d6efd, #0b5ed7);
+    border: none;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+}
+
+/* Estilos para los formularios */
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    padding: 0.6rem 0.75rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
