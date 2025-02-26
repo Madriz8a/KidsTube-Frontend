@@ -7,10 +7,19 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const repeatPassword = document.getElementById('repeatPassword').value;
+    const phone = document.getElementById('phone').value;
+    const pin = document.getElementById('pin').value;
     const name = document.getElementById('name').value;
     const lastName = document.getElementById('lastName').value;
+    const country = document.getElementById('country').value;
+    const birthdate = document.getElementById('birthdate').value;
 
-    // Validaciones básicas
+    // Validaciones del frontend
+    if (password.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres');
+        return;
+    }
+
     if (password !== repeatPassword) {
         alert('Las contraseñas no coinciden');
         return;
@@ -20,13 +29,32 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
         email,
         password,
         repeat_password: repeatPassword,
+        phone_number: phone,
+        pin,
         name,
-        last_name: lastName
+        last_name: lastName,
+        country,
+        birthdate,
+        state: false
     };
 
     try {
-        alert('Función de registro aún no implementada');
-        // Aquí se implementará la llamada a la API
+        const response = await fetch(`${API_URL}/users`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'register': 'true'
+            },
+            body: JSON.stringify(userData)
+        });
+
+        if (response.ok) {
+            alert('Registro exitoso. Por favor, revisa tu correo para confirmar.');
+            window.location.href = 'login.html';
+        } else {
+            const error = await response.json();
+            alert(`Error: ${error.error}`);
+        }
     } catch (error) {
         console.error('Error:', error);
     }
