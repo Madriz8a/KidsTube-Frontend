@@ -63,7 +63,27 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
 // Función para iniciar sesión
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    alert('Función de login aún no implementada');
-    // Aquí se implementará la llamada a la API
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        const response = await fetch(`${API_URL}/session`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: email, password })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('token', data.token); // Guardar el token en localStorage
+            window.location.href = 'dashboard.html';
+        } else {
+            const error = await response.json();
+            alert(`Error: ${error.error}`); // Mostrar el mensaje de error del servidor
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
 });
