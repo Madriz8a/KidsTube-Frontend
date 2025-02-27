@@ -87,3 +87,75 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
         console.error('Error:', error);
     }
 });
+
+// Función para verificar si hay un token válido
+const checkAuth = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        // No hay token, redirigir a login
+        window.location.href = 'login.html';
+        return false;
+    }
+    
+    try {
+        // Verificar validez del token haciendo una solicitud al API
+        const response = await fetch(`${API_URL}/users`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            // Token inválido o expirado
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error validando token:', error);
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+        return false;
+    }
+};
+
+// Función para cerrar sesión
+document.getElementById('logoutButton')?.addEventListener('click', async () => {
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+        try {
+            const response = await fetch(`${API_URL}/session`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                console.log('Sesión eliminada correctamente');
+            } else {
+                console.error('Error al eliminar la sesión');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    localStorage.removeItem('token'); // Eliminar el token
+    window.location.href = 'login.html';
+});
+
+// Verificar autenticación cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname;
+    
+    if (currentPage.includes('dashboard.html')) {
+        checkAuth();
+    }
+});
