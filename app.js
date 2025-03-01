@@ -151,11 +151,83 @@ document.getElementById('logoutButton')?.addEventListener('click', async () => {
     window.location.href = 'login.html';
 });
 
+// Función para decodificar el token JWT
+const decodeToken = (token) => {
+    try {
+        // El token JWT tiene tres partes: header.payload.signature
+        // Tomamos la parte del payload (segunda parte) y la decodificamos
+        const payload = token.split('.')[1];
+        const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error('Error decodificando token:', error);
+        return null;
+    }
+};
+
+// Función para obtener los datos del usuario actual
+const getCurrentUser = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    // Decodificar el token para obtener el ID del usuario
+    const decodedToken = decodeToken(token);
+    if (!decodedToken || !decodedToken.id) return null;
+    
+    try {
+        const response = await fetch(`${API_URL}/users?id=${decodedToken.id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            return await response.json();
+        } else {
+            console.error('Error obteniendo datos del usuario');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        return null;
+    }
+};
+
+// Función para cargar datos del usuario en el dashboard
+const loadDashboardUserInfo = async () => {
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) return;
+    
+    const user = await getCurrentUser();
+    if (!user) return;
+    
+    // Actualizar elementos del DOM con información del usuario
+    const userDisplayName = document.getElementById('userDisplayName');
+    const profileName = document.getElementById('profileName');
+    
+    if (profileName) profileName.textContent = `${user.name || ''} ${user.last_name || ''}`;
+};
+
 // Verificar autenticación cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
     const currentPage = window.location.pathname;
     
     if (currentPage.includes('dashboard.html')) {
         checkAuth();
+    }
+});
+
+// Verificación de autenticación y carga de datos según la página actual
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname;
+    
+    if (currentPage.includes('dashboard.html')) {
+        loadDashboardUserInfo();
     }
 });
