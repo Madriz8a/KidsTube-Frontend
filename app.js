@@ -223,6 +223,115 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Función para cargar el perfil del usuario en la página de edición
+const loadUserProfile = async () => {
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) return;
+    
+    const user = await getCurrentUser();
+    if (!user) return;
+    
+    // Llenar el formulario con los datos actuales del usuario
+    document.getElementById('name').value = user.name || '';
+    document.getElementById('lastName').value = user.last_name || '';
+    document.getElementById('email').value = user.email || '';
+    document.getElementById('phone').value = user.phone_number || '';
+    document.getElementById('country').value = user.country || '';
+    document.getElementById('birthdate').value = user.birthdate ? new Date(user.birthdate).toISOString().split('T')[0] : '';
+};
+
+// Función para actualizar el perfil del usuario
+const updateUserProfile = async (userData) => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    
+    // Decodificar el token para obtener el ID del usuario
+    const decodedToken = decodeToken(token);
+    if (!decodedToken || !decodedToken.id) return false;
+    
+    try {
+        const response = await fetch(`${API_URL}/users?id=${decodedToken.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        return response.ok;
+    } catch (error) {
+        console.error('Error actualizando perfil:', error);
+        return false;
+    }
+};
+
+// Manejo del formulario de actualización de perfil
+document.getElementById('updateProfileForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('name').value;
+    const lastName = document.getElementById('lastName').value;
+    const phone = document.getElementById('phone').value;
+    const country = document.getElementById('country').value;
+    const birthdate = document.getElementById('birthdate').value;
+    
+    const userData = {
+        name,
+        last_name: lastName,
+        phone_number: phone,
+        country,
+        birthdate
+    };
+    
+    // Verificar si se está intentando cambiar la contraseña
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const repeatNewPassword = document.getElementById('repeatNewPassword').value;
+    
+    if (currentPassword || newPassword || repeatNewPassword) {
+        // Si se está intentando cambiar la contraseña, verificar que todos los campos estén completos
+        if (!currentPassword || !newPassword || !repeatNewPassword) {
+            alert('Para cambiar la contraseña, todos los campos de contraseña deben estar completos');
+            return;
+        }
+        
+        // Verificar que las nuevas contraseñas coincidan
+        if (newPassword !== repeatNewPassword) {
+            alert('Las nuevas contraseñas no coinciden');
+            return;
+        }
+        
+        // Verificar longitud mínima
+        if (newPassword.length < 6) {
+            alert('La nueva contraseña debe tener al menos 6 caracteres');
+            return;
+        }
+        
+        userData.password = newPassword;
+        userData.repeat_password = repeatNewPassword;
+    }
+    
+    const success = await updateUserProfile(userData);
+    if (success) {
+        alert('Perfil actualizado correctamente');
+        window.location.href = 'dashboard.html';
+    } else {
+        alert('Error al actualizar el perfil');
+    }
+});
+
+// Actualizar la verificación para cargar el perfil cuando se está en la página profile.html
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname;
+    
+    if (currentPage.includes('dashboard.html')) {
+        loadDashboardUserInfo();
+    } else if (currentPage.includes('profile.html')) {
+        loadUserProfile();
+    }
+});
+
 // Verificación de autenticación y carga de datos según la página actual
 document.addEventListener('DOMContentLoaded', function() {
     const currentPage = window.location.pathname;
